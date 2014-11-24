@@ -35,10 +35,6 @@ public class MongoDriver implements Driver {
     static final String PREFIX = "mongodb://";
     static final String JDBC_PREFIX = "jdbc:mongodb://";
 
-    public static void main(String[] args) {
-
-	}
-
     public MongoDriver(){
     }
 
