@@ -4,9 +4,10 @@ package com.mongodb.jdbc;
 
 import java.sql.*;
 
+import org.testng.Assert;
 import org.testng.annotations.Test;
 
-public class DriverTest extends com.mongodb.util.TestCase {
+public class DriverTest extends Assert {
     @Test
     public void test1()
         throws Exception {
@@ -21,6 +22,6 @@ public class DriverTest extends com.mongodb.util.TestCase {
 
         MongoDriver.install();
         c = DriverManager.getConnection( "mongodb://localhost/test" );
-    } 
+    }
 
 }
