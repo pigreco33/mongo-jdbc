@@ -18,20 +18,42 @@
 
 package com.mongodb.jdbc;
 
-import java.io.*;
-import java.net.*;
-import java.sql.*;
-import java.util.*;
+import java.io.InputStream;
+import java.io.Reader;
+import java.math.BigDecimal;
+import java.net.URL;
+import java.sql.Array;
+import java.sql.Blob;
+import java.sql.Clob;
 import java.sql.Date;
-import java.math.*;
+import java.sql.NClob;
+import java.sql.Ref;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.RowId;
+import java.sql.SQLException;
+import java.sql.SQLWarning;
+import java.sql.SQLXML;
+import java.sql.Statement;
+import java.sql.Time;
+import java.sql.Timestamp;
+import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Map;
 
-import com.mongodb.*;
+import com.mongodb.DBCursor;
+import com.mongodb.DBObject;
 
 public class MongoResultSet implements ResultSet {
+
+	private ResultSetMetaData _resultSetMetaData;
+	private boolean _flagWasNull;
 
     MongoResultSet( DBCursor cursor ){
         _cursor = cursor;
         _fields.init( cursor.getKeysWanted() );
+        _resultSetMetaData = new MongoResultSetMetaData(cursor);
+        _flagWasNull = (_cursor==null)||(!_cursor.hasNext());
     }
 
     public void clearWarnings(){
@@ -47,7 +69,7 @@ public class MongoResultSet implements ResultSet {
     }
 
     //  meta data
-    
+
     public int getConcurrency(){
         return CONCUR_READ_ONLY;
     }
@@ -71,26 +93,27 @@ public class MongoResultSet implements ResultSet {
     }
 
     public ResultSetMetaData getMetaData(){
-        throw new UnsupportedOperationException();
+    	return _resultSetMetaData;
     }
 
     public SQLWarning getWarnings(){
+
         throw new UnsupportedOperationException();
     }
 
     public void setFetchSize(int rows){
-        throw new UnsupportedOperationException();        
+        throw new UnsupportedOperationException();
     }
 
     public int getFetchSize(){
-        throw new UnsupportedOperationException();        
+        throw new UnsupportedOperationException();
     }
 
 
     public Statement getStatement(){
-        throw new UnsupportedOperationException();       
+        throw new UnsupportedOperationException();
     }
-    
+
     public int getHoldability(){
         return ResultSet.HOLD_CURSORS_OVER_COMMIT;
     }
@@ -120,7 +143,7 @@ public class MongoResultSet implements ResultSet {
     public boolean isAfterLast(){
         throw new UnsupportedOperationException();
     }
-    
+
     public boolean isBeforeFirst(){
         throw new UnsupportedOperationException();
     }
@@ -163,19 +186,19 @@ public class MongoResultSet implements ResultSet {
     public void insertRow(){
         throw new UnsupportedOperationException();
     }
-    
+
     public void cancelRowUpdates(){
         throw new UnsupportedOperationException();
     }
-    
+
     public void deleteRow(){
-        throw new UnsupportedOperationException();        
+        throw new UnsupportedOperationException();
     }
 
     public void updateRow(){
         throw new UnsupportedOperationException();
     }
-    
+
     // field updates
 
     public void updateArray(int columnIndex, Array x){
@@ -349,7 +372,7 @@ public class MongoResultSet implements ResultSet {
     public Array getArray(String colName){
         throw new UnsupportedOperationException();
     }
-    
+
     public InputStream getAsciiStream(int columnIndex){
         return getAsciiStream( _find( columnIndex ) );
     }
@@ -432,30 +455,30 @@ public class MongoResultSet implements ResultSet {
         return (Date)_cur.get( columnName );
     }
     public Date getDate(String columnName, Calendar cal){
-        throw new UnsupportedOperationException();        
+        throw new UnsupportedOperationException();
     }
-    
+
     public double getDouble(int columnIndex){
         return getDouble( _find( columnIndex ) );
     }
     public double getDouble(String columnName){
         return _getNumber( columnName ).doubleValue();
     }
-    
+
     public float getFloat(int columnIndex){
         return getFloat( _find( columnIndex ) );
     }
     public float getFloat(String columnName){
         return _getNumber( columnName ).floatValue();
     }
-    
+
     public int getInt(int columnIndex){
         return getInt( _find( columnIndex ) );
     }
     public int getInt(String columnName){
         return _getNumber( columnName ).intValue();
     }
-    
+
     public long getLong(int columnIndex){
         return getLong( _find( columnIndex ) );
     }
@@ -495,7 +518,7 @@ public class MongoResultSet implements ResultSet {
     public Object getObject(String colName, Map map){
         throw new UnsupportedOperationException();
     }
-        
+
     public Ref getRef(int i){
         return getRef( _find( i ) );
     }
@@ -509,7 +532,7 @@ public class MongoResultSet implements ResultSet {
     public RowId getRowId( String name ){
         throw new UnsupportedOperationException();
     }
-        
+
 
     public SQLXML getSQLXML(int columnIndex){
         return getSQLXML( _find( columnIndex ) );
@@ -610,11 +633,11 @@ public class MongoResultSet implements ResultSet {
     public void updateNString(String columnLabel, String nString){ throw new UnsupportedOperationException(); }
 
     public boolean wasNull(){
-        throw new UnsupportedOperationException();
+    	return false;
     }
 
     // column <-> int mapping
-    
+
     public int findColumn( String columnName ){
         return _fields.get( columnName );
     }
@@ -635,7 +658,7 @@ public class MongoResultSet implements ResultSet {
     }
 
     // moving throgh cursor
-    
+
     public boolean next(){
         if ( ! _cursor.hasNext() ){
             return false;
@@ -660,7 +683,7 @@ public class MongoResultSet implements ResultSet {
             for ( String key : o.keySet() )
                 get( key );
         }
-        
+
         int get( String s ){
             Integer i = _strings.get(s);
             if ( i == null ){
@@ -669,20 +692,20 @@ public class MongoResultSet implements ResultSet {
             }
             return i;
         }
-        
+
         String get( int i ){
             String s = _ids.get(i);
             if ( s != null )
                 return s;
-            
+
             init( _cur );
-            
+
             s = _ids.get(i);
             if ( s != null )
                 return s;
             throw new IllegalArgumentException( i + " is not a valid column id" );
         }
-        
+
         void _store( Integer i , String s ){
             _ids.put( i , s );
             _strings.put( s , i );

@@ -2,11 +2,13 @@
 
 package com.mongodb.jdbc;
 
-import com.mongodb.*;
-import org.testng.annotations.Test;
+import org.testng.Assert;
 
-public abstract class Base extends com.mongodb.util.TestCase {
-    
+import com.mongodb.DB;
+import com.mongodb.Mongo;
+
+public abstract class Base extends Assert {
+
     final Mongo _mongo;
     final DB _db;
 
@@ -20,6 +22,6 @@ public abstract class Base extends com.mongodb.util.TestCase {
         }
     }
 
-    
+
 }
 
